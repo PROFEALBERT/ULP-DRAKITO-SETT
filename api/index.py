@@ -6,6 +6,7 @@ import os
 import requests
 from fpdf import FPDF
 from io import BytesIO
+import base64
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "ulp_drakito_sett_2026_secret")
@@ -529,9 +530,9 @@ def planes():
         ("10 CRÉDITO", "S/15.00"),
         ("40 CRÉDITOS", "S/60.00"),
         ("60 CRÉDITOS", "S/90.00"),
-        ("80 CRÉDITOS", "S/150.00"),
-        ("100 CRÉDITOS", "S/120.00"),
-        ("120 CRÉDITOS", "S/200.00"),
+        ("100 CRÉDITOS", "S/150.00"),
+        ("120 CRÉDITOS", "S/120.00"),
+        ("180 CRÉDITOS", "S/200.00"),
     ]
 
     cards = ""
@@ -931,9 +932,8 @@ def intelx():
                                     VALUES (?, ?, 'EXITOSO', 'intelx', 'TARGET LOCALIZADO', ?, '', 'SISTEMA_API')
                                 """, (cliente, referencia, detalle_ataque))
                                 conn.commit()
-                                conn.close()
                                 
-                                # GENERACIÓN DEL PDF EN MEMORIA RAM (Apto para Vercel)
+                                # GENERACIÓN DEL PDF EN MEMORIA Y CONVERSIÓN A BASE64
                                 pdf = FPDF()
                                 pdf.add_page()
                                 pdf.set_font("Arial", 'B', 16)
@@ -941,28 +941,34 @@ def intelx():
                                 pdf.ln(5)
                                 pdf.set_font("Arial", size=10)
                                 
-                                # Limpiar el texto de los saltos de línea HTML
                                 texto_limpio = detalle_ataque.replace('\\n', '\n')
                                 texto_final = texto_limpio.encode('latin-1', 'replace').decode('latin-1')
                                 pdf.multi_cell(0, 8, txt=texto_final)
                                 
-                                # Obtener el PDF como bytes en vez de guardarlo en disco
                                 pdf_bytes = pdf.output(dest='S').encode('latin-1')
-                                
-                                # Crear un archivo en memoria
-                                buffer = BytesIO(pdf_bytes)
-                                buffer.seek(0)
-                                
+                                pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
+                                data_uri = f"data:application/pdf;base64,{pdf_b64}"
                                 nombre_archivo = f"IntelX_{referencia.replace('.', '_').replace('/', '_')}.pdf"
                                 
-                                # Enviar el archivo directo desde la memoria al usuario
-                                return send_file(
-                                    buffer, 
-                                    as_attachment=True, 
-                                    download_name=nombre_archivo,
-                                    mimetype='application/pdf'
-                                )
+                                msg = f"""
+                                <p class='text-emerald-400 text-[11px] text-center font-black mb-4 bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl uppercase tracking-widest'>¡Datos Extraídos! ({total})</p>
                                 
+                                <div class="bg-black/40 border border-white/10 rounded-2xl p-5 mb-6 text-center shadow-lg">
+                                    <h3 class="text-white font-black text-sm mb-1">{nombre_archivo}</h3>
+                                    <p class="text-gray-400 text-[10px] uppercase tracking-widest mb-4 font-bold">Vista Previa del Reporte</p>
+                                    
+                                    <iframe src="{data_uri}#toolbar=0" class="w-full h-64 rounded-xl border border-white/20 mb-5 bg-white"></iframe>
+                                    
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <a href="{data_uri}" target="_blank" class="w-full bg-blue-500/20 border border-blue-500/40 text-blue-400 p-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg hover:bg-blue-500/30 transition flex items-center justify-center gap-2">
+                                            <span class="text-base">👁️</span> VER
+                                        </a>
+                                        <a href="{data_uri}" download="{nombre_archivo}" class="w-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 p-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg hover:bg-emerald-500/30 transition flex items-center justify-center gap-2">
+                                            <span class="text-base">📥</span> DESCARGAR
+                                        </a>
+                                    </div>
+                                </div>
+                                """
                             else:
                                 msg = "<p class='text-yellow-400 text-[11px] text-center font-black mb-6 bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-2xl uppercase tracking-widest'>Sin registros en la DB IntelX.</p>"
                         else:
@@ -982,7 +988,6 @@ def intelx():
         else:
             msg = "<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>Créditos Insuficientes</p>"
 
-        # Si no retornó el PDF arriba (hubo error), cerrar la conexión aquí
         try:
             conn.close()
         except:
