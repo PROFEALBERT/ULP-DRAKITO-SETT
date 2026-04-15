@@ -1,9 +1,11 @@
-from flask import Flask, request, redirect, session
+from flask import Flask, request, redirect, session, send_file
 import sqlite3
 import random
 import json
 import os
 import requests
+from fpdf import FPDF
+from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "ulp_drakito_sett_2026_secret")
@@ -428,6 +430,9 @@ def index():
 
     historial = ""
     for p in peds:
+        # Calcular creditos descontados segun el tipo de pedido
+        costo_descontado = 1 if p["tipo"] == "intelx" else (2 if p["tipo"] == "llamadas_spam" else 0)
+
         if p["estado"] == "EXITOSO":
             args = ",".join([
                 json.dumps((p["tipo"] or "").upper()),
@@ -449,8 +454,8 @@ def index():
         historial += f"""
         <div class="flex justify-between items-center border-b border-white/5 py-4 gap-4 hover:bg-white/[0.02] transition-colors rounded-xl px-2">
             <div class="flex flex-col">
-                <span class="text-[13px] font-bold text-white tracking-wide truncate max-w-[160px]">{p["referencia"] or "SOLICITUD"}</span>
-                <span class="text-[9px] text-blue-400 uppercase mt-1 font-bold tracking-widest">{(p["tipo"] or "").replace('_', ' ')}</span>
+                <span class="text-[13px] font-bold text-white tracking-wide truncate max-w-[160px]">Consulta: {p["referencia"] or "SOLICITUD"}</span>
+                <span class="text-[9px] text-blue-400 uppercase mt-1 font-bold tracking-widest">{(p["tipo"] or "").replace('_', ' ')} • -{costo_descontado} CRÉDITOS</span>
             </div>
             {btn}
         </div>
@@ -521,12 +526,12 @@ def planes():
         return redirect("/login")
 
     precios = [
-        ("01 CRÉDITO", "S/15.00"),
-        ("04 CRÉDITOS", "S/60.00"),
-        ("06 CRÉDITOS", "S/90.00"),
-        ("10 CRÉDITOS", "S/150.00"),
-        ("12 CRÉDITOS", "S/120.00"),
-        ("20 CRÉDITOS", "S/200.00"),
+        ("10 CRÉDITO", "S/15.00"),
+        ("40 CRÉDITOS", "S/60.00"),
+        ("60 CRÉDITOS", "S/90.00"),
+        ("80 CRÉDITOS", "S/150.00"),
+        ("100 CRÉDITOS", "S/120.00"),
+        ("120 CRÉDITOS", "S/200.00"),
     ]
 
     cards = ""
@@ -926,8 +931,38 @@ def intelx():
                                     VALUES (?, ?, 'EXITOSO', 'intelx', 'TARGET LOCALIZADO', ?, '', 'SISTEMA_API')
                                 """, (cliente, referencia, detalle_ataque))
                                 conn.commit()
+                                conn.close()
                                 
-                                msg = f"<p class='text-emerald-400 text-[11px] text-center font-black mb-6 bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl uppercase tracking-widest'>¡Datos Extraídos! ({total})</p>"
+                                # GENERACIÓN DEL PDF EN MEMORIA RAM (Apto para Vercel)
+                                pdf = FPDF()
+                                pdf.add_page()
+                                pdf.set_font("Arial", 'B', 16)
+                                pdf.cell(200, 10, txt="Reporte IntelX - ULP DRAKITO SETT", ln=True, align='C')
+                                pdf.ln(5)
+                                pdf.set_font("Arial", size=10)
+                                
+                                # Limpiar el texto de los saltos de línea HTML
+                                texto_limpio = detalle_ataque.replace('\\n', '\n')
+                                texto_final = texto_limpio.encode('latin-1', 'replace').decode('latin-1')
+                                pdf.multi_cell(0, 8, txt=texto_final)
+                                
+                                # Obtener el PDF como bytes en vez de guardarlo en disco
+                                pdf_bytes = pdf.output(dest='S').encode('latin-1')
+                                
+                                # Crear un archivo en memoria
+                                buffer = BytesIO(pdf_bytes)
+                                buffer.seek(0)
+                                
+                                nombre_archivo = f"IntelX_{referencia.replace('.', '_').replace('/', '_')}.pdf"
+                                
+                                # Enviar el archivo directo desde la memoria al usuario
+                                return send_file(
+                                    buffer, 
+                                    as_attachment=True, 
+                                    download_name=nombre_archivo,
+                                    mimetype='application/pdf'
+                                )
+                                
                             else:
                                 msg = "<p class='text-yellow-400 text-[11px] text-center font-black mb-6 bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-2xl uppercase tracking-widest'>Sin registros en la DB IntelX.</p>"
                         else:
@@ -947,7 +982,11 @@ def intelx():
         else:
             msg = "<p class='text-rose-400 text-[11px] text-center font-black mb-6 bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl uppercase tracking-widest'>Créditos Insuficientes</p>"
 
-        conn.close()
+        # Si no retornó el PDF arriba (hubo error), cerrar la conexión aquí
+        try:
+            conn.close()
+        except:
+            pass
 
     content = f"""
     <div class="neon-card p-8 mt-10 text-center">
